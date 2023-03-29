@@ -1,0 +1,15 @@
+// by Engenheiros do Icuii Team, UFPA.
+// File name: Not.hdl
+
+/**
+ * Not gate:
+ * out = not in
+ */
+
+CHIP Not {
+    IN in;
+    OUT out;
+
+    PARTS:
+    Nand (in = a, out = out)
+}
