@@ -6,13 +6,13 @@ import timeit
 # Definir a função que será testada
 def exemplo_func():
     soma = 0
-    for i in range(1000000):
+    for i in range(600000):
         soma += i
     return soma
 
 # Medir o tempo de execução da função usando a biblioteca timeit
 num_execucoes = 10
-tempo_execucoes = timeit.repeat("exemplo_func()", setup="from __main__ import exemplo_func", repeat=num_execucoes, number=1)
+tempo_execucoes = timeit.repeat("exemplo_func()", setup="from __main__ import exemplo_func", repeat=num_execucoes, number=55)
 
 # Calcular as estatísticas dos tempos de execução
 tempo_medio = sum(tempo_execucoes) / num_execucoes
