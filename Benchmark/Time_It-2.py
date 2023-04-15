@@ -11,7 +11,7 @@ def exemplo_func():
     return soma
 
 # Medir o tempo de execução da função usando a biblioteca timeit
-num_execucoes = 10
+num_execucoes = 11
 tempo_execucoes = timeit.repeat("exemplo_func()", setup="from __main__ import exemplo_func", repeat=num_execucoes, number=55)
 
 # Calcular as estatísticas dos tempos de execução
