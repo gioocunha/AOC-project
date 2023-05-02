@@ -1,0 +1,99 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/02/ALU.hdl
+
+/**
+ * The ALU (Arithmetic Logic Unit).
+ * Computes one of the following functions:
+ * x+y, x-y, y-x, 0, 1, -1, x, y, -x, -y, !x, !y,
+ * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs, 
+ * according to 6 input bits denoted zx,nx,zy,ny,f,no.
+ * In addition, the ALU computes two 1-bit outputs:
+ * if the ALU output == 0, zr is set to 1; otherwise zr is set to 0;
+ * if the ALU output < 0, ng is set to 1; otherwise ng is set to 0.
+ */
+
+// Implementation: the ALU logic manipulates the x and y inputs
+// and operates on the resulting values, as follows:
+// if (zx == 1) set x = 0        // 16-bit constant
+// if (nx == 1) set x = !x       // bitwise not
+// if (zy == 1) set y = 0        // 16-bit constant
+// if (ny == 1) set y = !y       // bitwise not
+// if (f == 1)  set out = x + y  // integer 2's complement addition
+// if (f == 0)  set out = x & y  // bitwise and
+// if (no == 1) set out = !out   // bitwise not
+// if (out == 0) set zr = 1
+// if (out < 0) set ng = 1
+
+CHIP ALU {
+    IN  
+        x[16], y[16],  // 16-bit inputs        
+        zx, // zero the x input?
+        nx, // negate the x input?
+        zy, // zero the y input?
+        ny, // negate the y input?
+        f,  // compute out = x + y (if 1) or x & y (if 0)
+        no; // negate the out output?
+
+    OUT 
+        out[16], // 16-bit output
+        zr, // 1 if (out == 0), 0 otherwise
+        ng; // 1 if (out < 0),  0 otherwise
+
+    PARTS:
+   //Seleciono X para 0 ou não:
+   Mux16(a=x,b=false,sel=zx,out=selx); 
+   
+   //Nego o valor de x, que já foi passado para zero ou não
+   Not16(in=selx,out=notx);
+   
+   //Agora verifico se querem a negação de x. 
+   Mux16(a=selx,b=notx,sel=nx,out=x2);
+   
+   //y=0 ou y!=0 
+   Mux16(a=y,b=false,sel=zy,out=sely);
+   
+   //Negação do y condicionado a ele ser zero ou não 
+   Not16(in=sely,out=noty); 
+   
+   //y2 é negação de y, que já passou pela selação de ser 0 ou não
+   Mux16(a=sely,b=noty,sel=ny,out=y2); 
+   
+   /*
+   *Faremos a Adição de x y (Add16 = x+y) ou o e logico 
+   *de x y (And16 = x&y) para então ser selecionado por f
+   */
+   And16(a=x2,b=y2,out=r);
+   Add16(a=x2,b=y2,out=r2);
+   Mux16(a=r,b=r2,sel=f,out=t);
+   Not16(in=t, out=nott);
+   Mux16(a=t,b=nott,sel=no,out=out);
+   
+   /*
+   *Para verificarmos se o número é negativo ou não precisamos saber
+   *qual o bit mais significativo, caso for 1, o número é negativo
+   *caso contrario é positivo.
+   */
+   
+   Mux16(a=t,b=nott,sel=no,out[15]=s);
+   Not(in=s,out=nots);
+   Mux(a=false,b=true,sel=s,out=ng);
+   
+   /*
+   *Para verificarmos se o número é igual a zero basta fazermos o or
+   *lógico entre os 16 bits do numero final, se a saida desse operador
+   *for 0 então teremos certeza que o número é igual a zero, ou seja,
+   *zr = 1.
+   *Só implementamos o or lógico com entrada de oito bits, por isso separemos
+   * a saida final em duas partes de oito bits:
+   */
+   Mux16(a=t,b=nott,sel=no,out[0..7]=part1,out[8..15]=part2);
+   Or8Way(in=part1, out=part1or);
+   Or8Way(in=part2, out=part2or);
+   Or(a=part1or, b=part2or, out=zeroounao);
+   Not(in=zeroounao,out=zr);
+   
+   
+     
+}
